@@ -1,0 +1,118 @@
+LambdaSecurityGroupId:
+  Type: AWS::EC2::SecurityGroup
+  DependsOn: VPC
+  Properties:
+    GroupDescription: SG to test ping
+    VpcId: !Ref VPC
+    SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 10.0.0.0/24
+      - IpProtocol: icmp
+        FromPort: 8
+        ToPort: -1
+        CidrIp: 10.0.0.0/24
+
+DemoFunction:
+  Type: AWS::Serverless::Function
+  Properties:
+    Handler: index.handler
+    Runtime: "nodejs12.x"
+    InlineCode: |
+      exports.handler = function(event, context, callback) {
+          console.log(event);
+          const response = {
+              statusCode: 200,
+              body: JSON.stringify('Hello from Lambda!')
+          };
+          callback(null, response);
+      };
+    VpcConfig:
+      SubnetIds: 
+        - !Ref SubnetId
+      SecurityGroupIds: 
+        - !Ref LambdaSecurityGroupId
+
+ApiGatewayIamRole:
+  Type: AWS::IAM::Role
+  Properties:
+    AssumeRolePolicyDocument:
+      Version: '2012-10-17'
+      Statement:
+        - Sid: ''
+          Effect: 'Allow'
+          Principal:
+            Service:
+              - 'apigateway.amazonaws.com'
+          Action:
+            - 'sts:AssumeRole'
+    Path: '/'
+    Policies:
+      - PolicyName: LambdaAccess
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: 'Allow'
+              Action: 'lambda:*'
+              Resource: !GetAtt DemoFunction.Arn
+
+
+ApiGatewayRestApi:
+  Type: AWS::ApiGateway::RestApi
+  Properties:
+    ApiKeySourceType: HEADER
+    Description: An API Gateway with a Lambda Integration
+    EndpointConfiguration:
+      Types:
+        - PRIVATE
+    Name: lambda-api
+
+SecurityGroupId:
+  Type: AWS::EC2::SecurityGroup
+  DependsOn: VPC
+  Properties:
+    GroupDescription: SG to test ping
+    VpcId: !Ref VPC
+    SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 10.0.0.0/24
+      - IpProtocol: icmp
+        FromPort: 8
+        ToPort: -1
+        CidrIp: 10.0.0.0/24
+
+ApiGatewayEndpoint:
+  Type: 'AWS::EC2::VPCEndpoint'
+  Properties:
+    VpcId: !Ref VpcId
+    ServiceName: !Sub 'com.amazonaws.${AWS::Region}.execute-api'
+    VpcEndpointType: Interface
+    SubnetIds: 
+      - !Ref SubnetId
+    SecurityGroupIds: 
+      - !Ref SecurityGroupId
+    PrivateDnsEnabled: true
+
+
+apiGatewayGetMethod:
+Type: "AWS::ApiGateway::Method"
+Properties:
+  RestApiId: !Ref ApiGatewayRestApi
+  ResourceId: !Ref apiGatewayResourcePath
+  HttpMethod: GET
+  AuthorizationType: NONE
+  Integration:
+    Type: AWS_PROXY
+    IntegrationHttpMethod: POST
+    Uri: !Join
+      - ":"
+      - - "arn"
+        - !Ref AWS::Partition
+        - "apigateway"
+        - !Ref AWS::Region
+        - "lambda:path/2015-03-31/functions/arn"
+        - !Ref AWS::Partition
+        - "lambda"
