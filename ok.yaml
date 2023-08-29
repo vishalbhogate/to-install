@@ -1,3 +1,25 @@
+LambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: SQSPushPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                Resource: arn:aws:sqs:us-west-2:123456789012:test-queue
+
 LambdaSecurityGroupId:
   Type: AWS::EC2::SecurityGroup
   DependsOn: VPC
@@ -18,6 +40,7 @@ DemoFunction:
   Type: AWS::Serverless::Function
   Properties:
     Handler: index.handler
+    Role: !GetAtt LambdaExecutionRole.Arn
     Runtime: "nodejs12.x"
     InlineCode: |
       exports.handler = function(event, context, callback) {
