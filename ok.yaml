@@ -1,4 +1,18 @@
-
+LambdaSecurityGroupId:
+  Type: AWS::EC2::SecurityGroup
+  DependsOn: VPC
+  Properties:
+    GroupDescription: SG to test ping
+    VpcId: !Ref VPC
+    SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 10.0.0.0/24
+      - IpProtocol: icmp
+        FromPort: 8
+        ToPort: -1
+        CidrIp: 10.0.0.0/24
 
 LambdaExecutionRole:
     Type: 'AWS::IAM::Role'
@@ -22,21 +36,21 @@ LambdaExecutionRole:
                   - sqs:SendMessage
                 Resource: arn:aws:sqs:us-west-2:123456789012:test-queue
 
-LambdaSecurityGroupId:
-  Type: AWS::EC2::SecurityGroup
-  DependsOn: VPC
-  Properties:
-    GroupDescription: SG to test ping
-    VpcId: !Ref VPC
-    SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: 22
-        ToPort: 22
-        CidrIp: 10.0.0.0/24
-      - IpProtocol: icmp
-        FromPort: 8
-        ToPort: -1
-        CidrIp: 10.0.0.0/24
+ MyLambdaFunction:
+   Type: AWS::Lambda::Function
+   Properties:
+     Code:
+       S3Bucket: my-bucket
+       S3Key: my-function.zip
+     Handler: index.handler
+     Role: !Ref LambdaExecutionRole
+     Runtime: python3.8
+     VpcConfig:
+       SecurityGroupIds:
+         - !Ref MySecurityGroup
+       SubnetIds:
+         - !Ref MyPrivateSubnet1
+         - !Ref MyPrivateSubnet2
 
 DemoFunction:
   Type: AWS::Serverless::Function
@@ -80,23 +94,6 @@ ApiGatewayIamRole:
             - Effect: 'Allow'
               Action: 'lambda:*'
               Resource: !GetAtt DemoFunction.Arn
-
-
- MyLambdaFunction:
-   Type: AWS::Lambda::Function
-   Properties:
-     Code:
-       S3Bucket: my-bucket
-       S3Key: my-function.zip
-     Handler: index.handler
-     Role: !GetAtt LambdaExecutionRole.Arn
-     Runtime: python3.8
-     VpcConfig:
-       SecurityGroupIds:
-         - !Ref MySecurityGroup
-       SubnetIds:
-         - !Ref MyPrivateSubnet1
-         - !Ref MyPrivateSubnet2
 
 ApiGatewayRestApi:
   Type: AWS::ApiGateway::RestApi
