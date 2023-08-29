@@ -1,3 +1,5 @@
+
+
 LambdaExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -40,7 +42,6 @@ DemoFunction:
   Type: AWS::Serverless::Function
   Properties:
     Handler: index.handler
-    Role: !GetAtt LambdaExecutionRole.Arn
     Runtime: "nodejs12.x"
     InlineCode: |
       exports.handler = function(event, context, callback) {
@@ -80,6 +81,22 @@ ApiGatewayIamRole:
               Action: 'lambda:*'
               Resource: !GetAtt DemoFunction.Arn
 
+
+ MyLambdaFunction:
+   Type: AWS::Lambda::Function
+   Properties:
+     Code:
+       S3Bucket: my-bucket
+       S3Key: my-function.zip
+     Handler: index.handler
+     Role: !GetAtt LambdaExecutionRole.Arn
+     Runtime: python3.8
+     VpcConfig:
+       SecurityGroupIds:
+         - !Ref MySecurityGroup
+       SubnetIds:
+         - !Ref MyPrivateSubnet1
+         - !Ref MyPrivateSubnet2
 
 ApiGatewayRestApi:
   Type: AWS::ApiGateway::RestApi
