@@ -1,0 +1,17 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "SecurityHub Events logs to S3"
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Comman
+        Parameters:
+          - ResourceNamePrefix
+
+Parameters:
+  ResourceNamePrefix:
+    Description: Resource Prefix Name
+    Type: String
+
+Resources:
