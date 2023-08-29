@@ -1,3 +1,11 @@
+Resources:
+     MyQueue:
+       Type: AWS::SQS::Queue
+       Properties:
+         QueueName: MyQueue
+         VisibilityTimeout: 300
+         MessageRetentionPeriod: 86400
+
 LambdaSecurityGroupId:
   Type: AWS::EC2::SecurityGroup
   DependsOn: VPC
