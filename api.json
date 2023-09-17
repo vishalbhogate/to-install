@@ -1,0 +1,27 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ScopeToPrivateApis",
+      "Effect": "Allow",
+      "Action": [
+        "apigateway:PATCH",
+        "apigateway:POST",
+        "apigateway:PUT"
+      ],
+      "Resource": [
+        "arn:aws:apigateway:us-east-1::/restapis",
+        "arn:aws:apigateway:us-east-1::/restapis/*"
+        "arn:aws:apigateway:us-east-1::/restapis/*/stages/*",
+        "arn:aws:apigateway:us-east-1::/restapis/*/resources/*/methods/*",
+        "arn:aws:apigateway:us-east-1::/restapis/*/deployments"
+      ],
+      "Condition": {
+        "ForAllValues:StringEqualsIfExists": {
+          "apigateway:Request/EndpointType": "PRIVATE",
+          "apigateway:Resource/EndpointType": "PRIVATE"
+        }
+      }
+    }
+  ]
+}
