@@ -1,0 +1,8 @@
+repo = Repo(repo_path)
+    commit = repo.commit(commit_sha)
+    changed_files = [item.a_path for item in repo.index.diff(None)]
+    file_details = []
+    for file in changed_files:
+        target_file = commit.tree / file
+        file_details.append({'file_name': target_file.name, 'file_path': file})
+    return file_details
