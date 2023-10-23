@@ -37,3 +37,29 @@ diff = commit.diff(repo.index)
 file_names = [d.a_path for d in diff]
 
 print(file_names)
+
+
+
+
+
+from git import Repo
+
+repo_path = '/path/to/repository'
+repo = Repo(repo_path)
+
+# Get the list of submodules
+submodules = repo.submodules
+
+# Iterate over each submodule
+for submodule in submodules:
+    submodule_repo = submodule.module()
+
+    # Get the diff between the submodule's index and working tree
+    diff = submodule_repo.index.diff(submodule_repo.head.commit)
+
+    # Iterate over the diff objects
+    for d in diff:
+        # Get the file name that has been updated
+        file_name = d.a_path
+        print(file_name)
+
