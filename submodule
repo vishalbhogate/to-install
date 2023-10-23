@@ -28,3 +28,12 @@ changed_files = [item.a_path for item in submodule_repo.index.diff(None)]
 # Print the list of changed files
 for file in changed_files:
     print(file)
+from git import Repo
+
+repo = Repo('/path/to/repository')
+submodule = repo.submodule('submodule_name')
+commit = submodule.module().head.commit
+diff = commit.diff(repo.index)
+file_names = [d.a_path for d in diff]
+
+print(file_names)
