@@ -11,3 +11,20 @@
         files = output.split('\n')
         return [file for file in files if file]  # exclude empty strings
     ```
+from git import Repo
+
+# Access the repository
+repo = Repo('path/to/your/repo')
+
+# Select the submodule
+submodule = repo.submodules[0]
+
+# Access the submodule's repository
+submodule_repo = submodule.module()
+
+# Get the list of changed files
+changed_files = [item.a_path for item in submodule_repo.index.diff(None)]
+
+# Print the list of changed files
+for file in changed_files:
+    print(file)
