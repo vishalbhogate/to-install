@@ -1,0 +1,13 @@
+    def execute_command(cmd):
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+        output, error = process.communicate()
+        if error:
+            print(f"Error executing command: {cmd}")
+        return output.decode('utf-8')
+    ```
+    def get_updated_files_in_submodule(commit1, commit2):
+        cmd = f"git submodule foreach --recursive 'git diff --name-only {commit1} {commit2}'"
+        output = execute_command(cmd)
+        files = output.split('\n')
+        return [file for file in files if file]  # exclude empty strings
+    ```
