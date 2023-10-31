@@ -117,3 +117,43 @@ resource "aws_security_group" "vpce_sg" {
     "Name" = "${local.name}-msk-elasticsearch-api-sg"
     }
 } 
+
+
+variable "endpoints" {
+  type = list(object({
+    name             = string
+    service_name     = string
+    vpc_id           = string
+    security_group_ids = list(string)
+    subnet_ids       = list(string)
+    private_dns_enabled = bool
+  }))
+  default = [
+    {
+      name             = "endpoint-1"
+      service_name     = "com.amazonaws.vpce.service-name-1"
+      vpc_id           = "vpc-12345678"
+      security_group_ids = ["sg-12345678"]
+      subnet_ids       = ["subnet-12345678"]
+      private_dns_enabled = true
+    },
+    {
+      name             = "endpoint-2"
+      service_name     = "com.amazonaws.vpce.service-name-2"
+      vpc_id           = "vpc-12345678"
+      security_group_ids = ["sg-12345678"]
+      subnet_ids       = ["subnet-12345678"]
+      private_dns_enabled = true
+    }
+  ]
+}
+
+resource "aws_vpc_endpoint" "vpc_endpoints" {
+  for_each = { for endpoint in var.endpoints : endpoint.name => endpoint }
+
+  vpc_id             = each.value.vpc_id
+  service_name       = each.value.service_name
+  security_group_ids = each.value.security_group_ids
+  subnet_ids         = each.value.subnet_ids
+  private_dns_enabled = each.value.private_dns_enabled
+}
