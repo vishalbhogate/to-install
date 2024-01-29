@@ -1,0 +1,67 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Create ec2 security groups",
+    "Parameters": {
+        "VPCId": {
+            "Description": "VPC ID from Parameter Store",
+            "Type": "String"
+        },
+        "ICSubnetId": {
+            "Description": "IC Subnet ID from Parameter Store",
+            "Type": "List<String>"
+        },
+        "GitHubApiPrefixList": {
+            "Description": "Prefix List for GitHub.",
+            "Type": "String"
+        }
+    },
+    "Resources": {
+        "LambdaFilterEventSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "allow traffic from VPC endpoint sg",
+                "SecurityGroupIngressss": {
+                    "CidrIp": "127.0.0.1/32",
+                    "IpProtocol": "ssh",
+                    "ToPort": 25,
+                    "FromPort": 23
+                },
+                "VpcId": {
+                    "Ref": "VPCId"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "LambdaFilterEventSecurityGroup"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "GSCIO Cloud Security Technology - CNAPP"
+                    },
+                    {
+                        "Key": "DataClassification",
+                        "Value": "Confidential"
+                    }
+                ]
+            }
+        },
+        "LambdaSecurityGroupIngress": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "DependsOn": [
+                "LambdaFilterEventSecurityGroup",
+                "VPCEndpointSecurityGroup"
+            ],
+            "Properties": {
+                "GroupId": {
+                    "Fn::GetAtt": [
+                        "LambdaFilterEventSecurityGroup",
+                        "GroupId"
+                    ]
+                },
+                "FromPort": 22,
+                "ToPort":22,
+                "IpProtocol": "ssh"
+            }
+        }
+    }
+}
