@@ -20,3 +20,17 @@ deny {
  port := input.Properties.SecurityGroupIngress.CidrIpTlvMap[_].FromPort
  not (port == 20 or port == 21 or port == 22 or port == 23 or port == 161 or port == 3389)
 }
+
+
+package main
+
+deny {
+    input.Resources.Type == "AWS::EC2::SecurityGroup"
+    not any_allowed_ports(input.Resources.Properties.SecurityGroupIngress)
+}
+
+any_allowed_ports([_]) {
+    index := {20, 21, 22, 23, 161, 3389}
+    count([_, _], input) >= 1
+    input[_] == index[_]
+}
